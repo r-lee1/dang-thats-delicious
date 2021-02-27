@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const slug = require('slugs');
+const sanitizeHtml = require('sanitize-html');
 
 const storeSchema = new mongoose.Schema({
   name: {
@@ -47,10 +48,16 @@ storeSchema.index({
 });
 
 storeSchema.pre('save', async function(next) {
+  this.name = sanitizeHtml(this.name);
+  next();
+});
+
+storeSchema.pre('save', async function(next) {
   if(!this.isModified('name')) {
     next(); //skip it
     return; //stop this function from running
   }
+
   this.slug = slug(this.name);
   // find other stores that have a slug of this.name, this.name-1, this.name-2...
   const slugRegEx = new RegExp(`^(${this.slug})((-[0-9]*$)?)`, 'i');
