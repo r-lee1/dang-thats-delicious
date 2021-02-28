@@ -3,6 +3,7 @@ const Store = mongoose.model('Store');
 const multer = require('multer');
 const jimp = require('jimp');
 const uuid = require('uuid');
+const sanitizeHtml = require('sanitize-html');
 const multerOptions = {
   storage: multer.memoryStorage(),
   fileFilter: function(req, file, next) {
@@ -73,12 +74,13 @@ exports.updateStore = async (req, res) => {
   // Set the location data to be a Point
   req.body.location.type = 'Point';
   // Find and update the store
+  req.body.name = sanitizeHtml(req.body.name);
   const store = await Store.findOneAndUpdate({ _id: req.params.id }, req.body, {
     new: true, // return the new store instead of the old one
     runValidators: true
   }).exec();
   // Redirect them to store and tell them it worked
-  req.flash('success', `Successfully updated <strong>${store.name}</strong>. <a href="/stores/${store.slug}">View Store ></a>`);
+  req.flash('success', `Successfully updated <strong>${store.name}</strong>. <a href="/store/${store.slug}">View Store ></a>`);
   res.redirect(`/stores/${store._id}/edit`);
 };
 
